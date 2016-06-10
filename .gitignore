@@ -1,0 +1,4 @@
+intermidiate/
+target/
+*.sdf
+*.opendb
