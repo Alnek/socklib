@@ -93,7 +93,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\socklib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\socklib\include;include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -109,7 +109,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\socklib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\socklib\include;include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,7 +153,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\acceptprogramm.cpp" />
+    <ClCompile Include="src\console.cpp" />
+    <ClCompile Include="src\echoprogramm.cpp" />
+    <ClCompile Include="src\instancemanager.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\processmanager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\acceptprogramm.h" />
+    <ClInclude Include="include\console.h" />
+    <ClInclude Include="include\echoprogramm.h" />
+    <ClInclude Include="include\instancemanager.h" />
+    <ClInclude Include="include\processmanager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
