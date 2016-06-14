@@ -1,5 +1,6 @@
 #include "instancemanager.h"
 
+#include "connection.h"
 #include "console.h"
 #include "echoprogramm.h"
 

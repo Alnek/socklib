@@ -2,6 +2,7 @@
 
 #include "instancemanager.h"
 #include "console.h"
+#include "connection.h"
 
 AcceptProgramm::AcceptProgramm()
 {

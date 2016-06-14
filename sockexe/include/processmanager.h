@@ -3,6 +3,8 @@
 
 #include <vector>
 
+class ProcessManager;
+
 class Runnable
 {
 public:
@@ -19,11 +21,16 @@ public:
     void Register(Runnable* runnable);
     void Unregister(Runnable* runnable);
 
-    void Run();
+    void Run(uint32_t fps);
 private:
     ProcessManager();
 
     std::vector<Runnable*> mRunnables;
+    
+    uint64_t mFrameCounter;
+    uint64_t mSkipCounter;
+    uint64_t mStartTick;
+    uint64_t mFPS;
 };
 
 #endif

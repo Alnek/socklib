@@ -19,10 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\connectionmanager.cpp" />
     <ClCompile Include="src\sock.cpp" />
+    <ClCompile Include="src\socket.cpp" />
+    <ClCompile Include="src\socketcallback.cpp" />
+    <ClCompile Include="src\socketobject.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\connection.h" />
+    <ClInclude Include="include\connectionmanager.h" />
     <ClInclude Include="include\sock.h" />
+    <ClInclude Include="include\socket.h" />
+    <ClInclude Include="include\socketcallback.h" />
+    <ClInclude Include="include\socketobject.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7F8CCFE4-2D14-4A67-88C8-43DCD82AE531}</ProjectGuid>

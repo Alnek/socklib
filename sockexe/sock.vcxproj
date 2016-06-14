@@ -159,6 +159,7 @@
     <ClCompile Include="src\instancemanager.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\processmanager.cpp" />
+    <ClCompile Include="src\spamprogramm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\acceptprogramm.h" />
@@ -166,6 +167,7 @@
     <ClInclude Include="include\echoprogramm.h" />
     <ClInclude Include="include\instancemanager.h" />
     <ClInclude Include="include\processmanager.h" />
+    <ClInclude Include="include\spamprogramm.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

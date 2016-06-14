@@ -9,14 +9,10 @@ EchoProgramm::EchoProgramm()
 
     mRecvBuffer.reserve(1024);
     mSendBuffer.reserve(1024);
-
-    ProcessManager::GetInstance().Register(this);
 }
 
 EchoProgramm::~EchoProgramm()
 {
-    ProcessManager::GetInstance().Unregister(this);
-
     Console::GetInstance().Print("~EchoProgramm");
 }
 
@@ -50,20 +46,4 @@ void EchoProgramm::CanRead(Socket socket)
 void EchoProgramm::ExFunc(Socket socket)
 {
     InstanceManager::GetInstance().StopProgramm(socket);
-}
-
-void EchoProgramm::Run()
-{
-    if (false == mSendBuffer.empty())
-        return;
-
-    char buf[10*1024];
-    for (auto i = 0; i != sizeof(buf); ++i)
-    {
-        buf[i] = 'a' + rand() % ('a' - 'z');
-    }
-    buf[sizeof(buf) - 1] = 0;
-
-    mSendBuffer.insert(mSendBuffer.end(), &buf[0], &buf[sizeof(buf)]);
-    GetSocket(this).SetState(Socket::READ | Socket::WRITE);
 }

@@ -1,20 +1,24 @@
-#ifndef __ECHO_PROGRAMM_H__
-#define __ECHO_PROGRAMM_H__
+#ifndef __SPAM_PROGRAMM_H__
+#define __SPAM_PROGRAMM_H__
 
+#include "processmanager.h"
 #include "socketcallback.h"
 
 #include <vector>
 
-class EchoProgramm
+class SpamProgramm
     : public SocketCallback
+    , private Runnable
 {
 public:
     virtual void CanWrite(Socket socket) override;
     virtual void CanRead(Socket socket) override;
     virtual void ExFunc(Socket socket) override;
 
-    EchoProgramm();
-    virtual ~EchoProgramm();
+    virtual void Run() override;
+
+    SpamProgramm();
+    virtual ~SpamProgramm();
 
 private:
     std::vector<char> mRecvBuffer;

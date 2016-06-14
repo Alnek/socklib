@@ -1,14 +1,25 @@
 #include "console.h"
 
 #include <iostream>
+#include <sstream>
 #include <string>
+#include <vector>
 #include <windows.h>
-
-extern bool runFlag;
 
 namespace
 {
     const char WELCOME[] = "> ";
+}
+
+std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems)
+{
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim))
+    {
+        elems.push_back(item);
+    }
+    return elems;
 }
 
 Console& Console::GetInstance()
@@ -39,17 +50,62 @@ void Console::CleanLine()
 
 void Console::Execute()
 {
-    if ("" == mCommand) { InitCmd(); }
-    //else if ("" == mCommand) {}
-    else if ("exit" == mCommand) { runFlag = false; }
-    else
+    std::vector<std::string> tokens;
+    split(mCommand, ' ', tokens);
+
+    std::string initialCommand;
+    initialCommand.swap(mCommand);
+
+    if (tokens.size() > 0)
     {
-        std::cout << "unknown command: " << mCommand << std::endl;
-        mCommand.clear();
-        InitCmd();
+        mHistory.push_front(initialCommand);
+        mHistoryIndex = 0;
+
+        const std::string& command = tokens[0];
+        for (auto it = mActions.begin(); it != mActions.end(); ++it)
+        {
+            if (it->first == command)
+            {
+                Action& action = it->second;
+                (*action.func)(tokens, action.context);
+                CleanLine();
+                InitCmd();
+                return;
+            }
+        }
     }
 
-    mCommand.clear();
+    LOG("unknown command: " << initialCommand);
+}
+
+void Console::PrevCommand()
+{
+    CleanLine();
+
+    if (mHistory.size() > mHistoryIndex)
+    {
+        mCommand = mHistory[mHistoryIndex++];
+    }
+
+    InitCmd();
+}
+
+void Console::NextCommand()
+{
+    CleanLine();
+
+    if (mHistoryIndex > 0) mHistoryIndex--;
+
+    if (mHistoryIndex > 0 && mHistory.size() > mHistoryIndex)
+    {
+        mCommand = mHistory[mHistoryIndex - 1];
+    }
+    else
+    {
+        mCommand = "";
+    }
+
+    InitCmd();
 }
 
 void Console::Process()
@@ -65,8 +121,12 @@ void Console::Process()
         INPUT_RECORD& record = records[i];
         if (KEY_EVENT == record.EventType && 1 == record.Event.KeyEvent.bKeyDown)
         {
-            const char c = record.Event.KeyEvent.uChar.AsciiChar;
-            if ('\b' == c)
+            if (VK_RETURN == record.Event.KeyEvent.wVirtualKeyCode)
+            {
+                std::cout << std::endl;
+                Execute();
+            }
+            else if (VK_BACK == record.Event.KeyEvent.wVirtualKeyCode)
             {
                 if (false == mCommand.empty())
                 {
@@ -74,11 +134,18 @@ void Console::Process()
                     mCommand.pop_back();
                 }
             }
-            else if ('\r' == c)
+            else if (VK_UP == record.Event.KeyEvent.wVirtualKeyCode)
             {
-                std::cout << std::endl;
-                Execute();
+                PrevCommand();
             }
+            else if (VK_DOWN == record.Event.KeyEvent.wVirtualKeyCode)
+            {
+                NextCommand();
+            }
+
+            const char c = record.Event.KeyEvent.uChar.AsciiChar;
+            if (0 == c || '\r' == c || '\b' == c)
+            {}
             else
             {
                 std::cout << c;
@@ -101,4 +168,12 @@ void Console::Print(const char* message, size_t len)
     if (0 == len) len = strlen(message);
 
     Print(std::string(message, len));
+}
+
+void Console::BindAction(const char* command, ConsoleCallback action, void* context)
+{
+    Action tmp;
+    tmp.func = action;
+    tmp.context = context;
+    mActions[command] = tmp;
 }

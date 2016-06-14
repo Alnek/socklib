@@ -1,9 +1,7 @@
 #ifndef __ACCEPT_PROGRAMM_H__
 #define __ACCEPT_PROGRAMM_H__
 
-#include "sock.h"
-
-#include <string>
+#include "socketcallback.h"
 
 class AcceptProgramm : public SocketCallback
 {
