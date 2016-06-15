@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "socklib", "socklib\socklib.vcxproj", "{7F8CCFE4-2D14-4A67-88C8-43DCD82AE531}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sock_exe", "sockexe\sock.vcxproj", "{C5F2DC89-AEAA-4E74-86C5-B70EE575A83B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "socksrv", "socksrv\socksrv.vcxproj", "{C5F2DC89-AEAA-4E74-86C5-B70EE575A83B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{7F8CCFE4-2D14-4A67-88C8-43DCD82AE531} = {7F8CCFE4-2D14-4A67-88C8-43DCD82AE531}
 	EndProjectSection
