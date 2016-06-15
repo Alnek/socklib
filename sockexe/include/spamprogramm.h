@@ -2,6 +2,7 @@
 #define __SPAM_PROGRAMM_H__
 
 #include "processmanager.h"
+#include "socket.h"
 #include "socketcallback.h"
 
 #include <vector>
@@ -11,18 +12,20 @@ class SpamProgramm
     , private Runnable
 {
 public:
-    virtual void CanWrite(Socket socket) override;
-    virtual void CanRead(Socket socket) override;
-    virtual void ExFunc(Socket socket) override;
+    virtual void DoRecv() override;
+    virtual void DoSend() override;
+    virtual void HandleError() override;
 
     virtual void Run() override;
 
-    SpamProgramm();
+    SpamProgramm(Socket& socket);
     virtual ~SpamProgramm();
 
 private:
     std::vector<char> mRecvBuffer;
     std::vector<char> mSendBuffer;
+
+    Socket mSocket;
 };
 
 #endif

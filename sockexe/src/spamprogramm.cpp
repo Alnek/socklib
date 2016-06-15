@@ -1,16 +1,20 @@
 #include "spamprogramm.h"
 
+#include "echoprogramm.h"
 #include "instancemanager.h"
 #include "console.h"
 
-SpamProgramm::SpamProgramm()
+SpamProgramm::SpamProgramm(Socket& socket)
+    : mSocket(socket)
 {
     Console::GetInstance().Print("SpamProgramm");
 
-    mRecvBuffer.reserve(1024);
-    mSendBuffer.reserve(1024);
+    //mRecvBuffer.reserve(1024);
+    //mSendBuffer.reserve(1024);
 
     ProcessManager::GetInstance().Register(this);
+
+    mSocket.CancelAsync();
 }
 
 SpamProgramm::~SpamProgramm()
@@ -20,36 +24,29 @@ SpamProgramm::~SpamProgramm()
     Console::GetInstance().Print("~SpamProgramm");
 }
 
-void SpamProgramm::CanWrite(Socket socket)
+void SpamProgramm::DoRecv()
 {
-    if (false == socket.Send(mSendBuffer))
+    mSocket.Recv(mRecvBuffer);
+    mRecvBuffer.clear();
+    mSocket.AsyncRead();
+}
+
+void SpamProgramm::DoSend()
+{
+    if (true == mSocket.Send(mSendBuffer))
     {
-        InstanceManager::GetInstance().StopProgramm(socket);
-    }
-    else
-    {
-        socket.SetState(Socket::READ);
         mSendBuffer.clear();
-    }
-}
-
-void SpamProgramm::CanRead(Socket socket)
-{
-    if (false == socket.Recv(mRecvBuffer))
-    {
-        InstanceManager::GetInstance().StopProgramm(socket);
+        mSocket.SetCallback(new EchoProgramm(mSocket));
     }
     else
     {
-        mSendBuffer.insert(mSendBuffer.end(), mRecvBuffer.begin(), mRecvBuffer.end());
-        mRecvBuffer.clear();
-        socket.SetState(Socket::READ | Socket::WRITE);
+        InstanceManager::GetInstance().StopProgramm(mSocket);
     }
 }
 
-void SpamProgramm::ExFunc(Socket socket)
+void SpamProgramm::HandleError()
 {
-    InstanceManager::GetInstance().StopProgramm(socket);
+    InstanceManager::GetInstance().StopProgramm(mSocket);
 }
 
 void SpamProgramm::Run()
@@ -57,13 +54,13 @@ void SpamProgramm::Run()
     if (false == mSendBuffer.empty())
         return;
 
-    char buf[256];
+    char buf[4];
     for (auto i = 0; i != sizeof(buf); ++i)
     {
         buf[i] = 'a' + rand() % ('a' - 'z');
     }
-    buf[sizeof(buf) - 1] = 0;
+    //buf[sizeof(buf) - 1] = 0;
 
     mSendBuffer.insert(mSendBuffer.end(), &buf[0], &buf[sizeof(buf)]);
-    GetSocket(this).SetState(Socket::READ | Socket::WRITE);
+    mSocket.AsyncWrite();
 }

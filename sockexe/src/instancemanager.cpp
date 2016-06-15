@@ -15,14 +15,11 @@ void InstanceManager::StartProgramm(Socket& socket)
     const ConnectionInfo& conInfo = socket.GetConnInfo();
     LOG("Incoming connection: " << conInfo.addr << ":" << conInfo.port);
 
-    socket.SetCallback(new EchoProgramm);
-    socket.SetState(Socket::READ);
-    SocketSystem::GetInstance().Include(socket);
+    socket.SetCallback(new EchoProgramm(socket));
 }
 
-void InstanceManager::StopProgramm(Socket& socket)
+void InstanceManager::StopProgramm(Socket socket)
 {
-    SocketSystem::GetInstance().Exclude(socket);
     socket.SetCallback(nullptr);
     socket.Close();
 

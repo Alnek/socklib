@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\sock.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\connectionmanager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -32,9 +29,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\sock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\connectionmanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -11,11 +11,8 @@ struct ConnectionInfo;
 class Socket
 {
 public:
-    static const int READ = 0x01;
-    static const int WRITE = 0x02;
-
     Socket();
-    //Socket(const Socket&); //default is ok
+    Socket(const Socket&); //default is ok?
     ~Socket();
 
     bool Bind(const char* addr, uint16_t port);
@@ -27,18 +24,23 @@ public:
     void Shutdown();
     void Close();
 
-    void SetState(int state);
+    void AsyncRead();
+    void AsyncWrite();
+    void CancelAsync();
     void SetCallback(SocketCallback* callback);
 
     const ConnectionInfo& GetConnInfo() const;
 
 private:
+    Socket& operator=(const Socket&);
+
+    friend class ConnectionManager;
     friend class SystemSocket;
-    friend class SocketSystem;
-    friend class SocketCallback;
+
+    static const int READ = 0x01;
+    static const int WRITE = 0x02;
 
     Socket(uintptr_t s);
-    Socket(std::shared_ptr<SystemSocket>& systemSocket);
 
     std::shared_ptr<SystemSocket> mSystemSocket;
 };

@@ -1,12 +1,89 @@
 #include "socketobject.h"
 
-#include "socketcallback.h"
-
 #define SOCKLIB_IPV6 1
 #define FD_SETSIZE  10000
 
 #include <assert.h>
 #include <ws2tcpip.h>
+
+const uint32_t SystemSocket::MAX = FD_SETSIZE;
+const uintptr_t SystemSocket::INVALID = INVALID_SOCKET;
+
+void SystemSocket::Init()
+{
+    WSAData wsaData;
+    WORD wVersionRequested = MAKEWORD(2, 0);
+    int r = WSAStartup(wVersionRequested, &wsaData);
+    assert(0 == r && "failed to Startup sockets");
+}
+
+void SystemSocket::Cleanup()
+{
+    WSACleanup();
+}
+
+bool SystemSocket::Select(uint64_t* nanoSec, std::vector<uintptr_t>& rSet, std::vector<uintptr_t>& wSet, std::vector<uintptr_t>& xSet)
+{
+    fd_set rset;
+    fd_set wset;
+    fd_set xset;
+    rset.fd_count = wset.fd_count = xset.fd_count = 0;
+
+    for (auto it = rSet.begin(); it != rSet.end(); ++it)
+    {
+        rset.fd_array[rset.fd_count++] = *it;
+    }
+    for (auto it = wSet.begin(); it != wSet.end(); ++it)
+    {
+        wset.fd_array[wset.fd_count++] = *it;
+    }
+    for (auto it = xSet.begin(); it != xSet.end(); ++it)
+    {
+        xset.fd_array[xset.fd_count++] = *it;
+    }
+
+    rSet.clear(); wSet.clear(); xSet.clear();
+
+    timeval t = { 0 };
+    if (nullptr != nanoSec)
+    {
+        t.tv_sec = static_cast<uint32_t>(*nanoSec / 1000000);
+        t.tv_usec = static_cast<uint32_t>(*nanoSec % 1000000);
+    }
+    int r = select(0
+        , 0 == rset.fd_count ? nullptr : &rset
+        , 0 == wset.fd_count ? nullptr : &wset
+        , 0 == xset.fd_count ? nullptr : &xset
+        , nullptr == nanoSec ? nullptr : &t);
+
+    if (SOCKET_ERROR == r)
+    {
+        assert(0 && "unexpected SOCKET_ERROR");
+        return false;
+    }
+    else if (r > 0 && rset.fd_count > 0)
+    {
+        for (u_int i = 0; i != rset.fd_count; ++i)
+        {
+            rSet.push_back(rset.fd_array[i]);
+        }
+    }
+    else if (r > 0 && wset.fd_count > 0)
+    {
+        for (u_int i = 0; i != wset.fd_count; ++i)
+        {
+            wSet.push_back(wset.fd_array[i]);
+        }
+    }
+    else if (r > 0 && xset.fd_count > 0)
+    {
+        for (u_int i = 0; i != xset.fd_count; ++i)
+        {
+            xSet.push_back(xset.fd_array[i]);
+        }
+    }
+    return true;
+}
 
 SystemSocket::SystemSocket()
     : fd(0)
@@ -81,14 +158,14 @@ Socket SystemSocket::Accept()
 #endif
     }
 
-    Socket s(acceptFd);
-    s.mSystemSocket->conInfo = conInfo;
-    return s;
+    Socket result(acceptFd);
+    result.mSystemSocket->conInfo = conInfo;
+    return result;
 }
 
 bool SystemSocket::Recv(std::vector<char>& buffer)
 {
-    char buf[1024];
+    char buf[100*1024];
     int r = recv(fd, buf, sizeof(buf), 0);
     if (r <= 0)
     {
@@ -107,6 +184,10 @@ bool SystemSocket::Send(const std::vector<char>& buffer)
     if (r <= 0)
     {
         return false;
+    }
+    if (r < buffer.size())
+    {
+        assert(0 && "failed to send whole buffer");
     }
     return true;
 }

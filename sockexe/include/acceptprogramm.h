@@ -6,11 +6,16 @@
 class AcceptProgramm : public SocketCallback
 {
 public:
-    virtual void CanRead(Socket socket) override;
-    virtual void ExFunc(Socket socket) override;
+    virtual void DoRecv() override;
+    //virtual void DoSend() override;
+    virtual void HandleError() override;
 
+    //AcceptProgramm(Socket& socket);
     AcceptProgramm();
     virtual ~AcceptProgramm();
+
+private:
+    Socket mSocket;
 };
 
 #endif

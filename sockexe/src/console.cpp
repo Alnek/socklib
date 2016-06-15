@@ -50,6 +50,12 @@ void Console::CleanLine()
 
 void Console::Execute()
 {
+    if (true == mCommand.empty())
+    {
+        InitCmd();
+        return;
+    }
+
     std::vector<std::string> tokens;
     split(mCommand, ' ', tokens);
 

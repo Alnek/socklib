@@ -1,8 +1,8 @@
-#include "sock.h"
-
 #include "acceptprogramm.h"
+#include "connectionmanager.h"
 #include "console.h"
 #include "processmanager.h"
+#include "socket.h"
 
 #include <windows.h>
 #include <sstream>
@@ -37,7 +37,7 @@ void ShutdownConnection(const std::vector<std::string>& tokens, void*)
 void ListConnections(const std::vector<std::string>&, void*)
 {
     std::vector<uint64_t> ids;
-    //ProcessManager::GetInstance().List(ids);
+    ConnectionManager::GetInstance().List(ids);
 
     std::stringstream ss;
     for (auto it = ids.begin(); it != ids.end(); ++it)
@@ -67,25 +67,23 @@ int main()
     DWORD threadId;
     HANDLE thread = CreateThread(nullptr, 0, run, nullptr, 0, &threadId);
 
-    SocketSystem& ssys = SocketSystem::GetInstance();
-    Socket s;
-    s.Bind("0.0.0.0", 7788);
-    s.Listen();
-    s.SetCallback(new AcceptProgramm);
-    s.SetState(Socket::READ);
-    ssys.Include(s);
+    ConnectionManager& cm = ConnectionManager::GetInstance();
+
+    //Socket server;
+    //server.SetCallback(new AcceptProgramm(server));
+    new AcceptProgramm;
 
     while (runFlag)
     {
         ProcessManager::GetInstance().Run(120);
-        ssys.Select();
+        cm.Select(100);
     }
 
-    ssys.Exclude(s);
-    s.Close();
-    ssys.ShutDown();
+    //server.SetCallback(nullptr);
+    //server.Close();
+    cm.Shutdown();
+
     WaitForSingleObject(thread, INFINITE);
-    s.SetCallback(nullptr);
     Sleep(1000);
     return 0;
 }

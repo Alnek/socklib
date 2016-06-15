@@ -9,11 +9,9 @@
 class SocketCallback
 {
 public:
-    Socket GetSocket(const SocketCallback* programm) const;
-
-    virtual void CanRead(Socket socket) {};
-    virtual void CanWrite(Socket socket) {};
-    virtual void ExFunc(Socket socket) {};
+    virtual void DoRecv() {};
+    virtual void DoSend() {};
+    virtual void HandleError() {};
 
     virtual ~SocketCallback() {};
 };

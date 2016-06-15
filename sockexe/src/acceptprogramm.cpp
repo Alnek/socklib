@@ -5,8 +5,14 @@
 #include "connection.h"
 
 AcceptProgramm::AcceptProgramm()
+    //: mSocket(socket)
 {
     Console::GetInstance().Print("AcceptProgramm");
+
+    mSocket.Bind("0.0.0.0", 7788);
+    mSocket.Listen();
+    mSocket.SetCallback(this);
+    mSocket.AsyncRead();
 }
 
 AcceptProgramm::~AcceptProgramm()
@@ -14,16 +20,18 @@ AcceptProgramm::~AcceptProgramm()
     Console::GetInstance().Print("~AcceptProgramm");
 }
 
-void AcceptProgramm::CanRead(Socket socket)
+void AcceptProgramm::DoRecv()
 {
-    Socket s = socket.Accept();
+    /*Socket s = mSocket.Accept();
     if (false == s.GetConnInfo().IsValid())
         return;
 
-    InstanceManager::GetInstance().StartProgramm(s);
+    InstanceManager::GetInstance().StartProgramm(s);*/
+    mSocket.SetCallback(nullptr);
+    //mSocket.AsyncRead();
 }
 
-void AcceptProgramm::ExFunc(Socket socket)
+void AcceptProgramm::HandleError()
 {
-    //
+    mSocket.SetCallback(nullptr);
 }

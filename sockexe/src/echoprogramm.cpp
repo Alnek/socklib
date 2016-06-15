@@ -2,48 +2,54 @@
 
 #include "instancemanager.h"
 #include "console.h"
+#include "spamprogramm.h"
 
-EchoProgramm::EchoProgramm()
+EchoProgramm::EchoProgramm(Socket& socket)
+    : mSocket(socket)
 {
-    Console::GetInstance().Print("EchoProgramm");
+    LOG("EchoProgramm");
 
     mRecvBuffer.reserve(1024);
     mSendBuffer.reserve(1024);
+
+    mSocket.AsyncRead();
 }
 
 EchoProgramm::~EchoProgramm()
 {
-    Console::GetInstance().Print("~EchoProgramm");
+    LOG("~EchoProgramm");
 }
 
-void EchoProgramm::CanWrite(Socket socket)
+void EchoProgramm::DoRecv()
 {
-    if (false == socket.Send(mSendBuffer))
+    if (true == mSocket.Recv(mRecvBuffer))
     {
-        InstanceManager::GetInstance().StopProgramm(socket);
-    }
-    else
-    {
-        socket.SetState(Socket::READ);
-        mSendBuffer.clear();
-    }
-}
+        mSocket.SetCallback(new SpamProgramm(mSocket));
+        /*mSendBuffer.insert(mSendBuffer.end(), mRecvBuffer.begin(), mRecvBuffer.end());
 
-void EchoProgramm::CanRead(Socket socket)
-{
-    if (false == socket.Recv(mRecvBuffer))
-    {
-        InstanceManager::GetInstance().StopProgramm(socket);
-    }
-    else
-    {
-        mSendBuffer.insert(mSendBuffer.end(), mRecvBuffer.begin(), mRecvBuffer.end());
         mRecvBuffer.clear();
-        socket.SetState(Socket::READ | Socket::WRITE);
+        mSocket.AsyncWrite();*/
+    }
+    else
+    {
+        InstanceManager::GetInstance().StopProgramm(mSocket);
     }
 }
 
-void EchoProgramm::ExFunc(Socket socket)
+void EchoProgramm::DoSend()
 {
-    InstanceManager::GetInstance().StopProgramm(socket);
+    if (true == mSocket.Send(mSendBuffer))
+    {
+        mSendBuffer.clear();
+        mSocket.AsyncRead();
+    }
+    else
+    {
+        InstanceManager::GetInstance().StopProgramm(mSocket);
+    }
+}
+
+void EchoProgramm::HandleError()
+{
+    InstanceManager::GetInstance().StopProgramm(mSocket);
 }
