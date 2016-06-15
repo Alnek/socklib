@@ -3,6 +3,7 @@
 #include "connection.h"
 #include "console.h"
 #include "echoprogramm.h"
+#include "spamprogramm.h"
 
 InstanceManager& InstanceManager::GetInstance()
 {
@@ -15,7 +16,8 @@ void InstanceManager::StartProgramm(Socket& socket)
     const ConnectionInfo& conInfo = socket.GetConnInfo();
     LOG("Incoming connection: " << conInfo.addr << ":" << conInfo.port);
 
-    socket.SetCallback(new EchoProgramm(socket));
+    //socket.SetCallback(new EchoProgramm(socket));
+    socket.SetCallback(new SpamProgramm(socket));
 }
 
 void InstanceManager::StopProgramm(Socket socket)

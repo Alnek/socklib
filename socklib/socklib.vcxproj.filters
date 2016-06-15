@@ -44,5 +44,8 @@
     <ClInclude Include="include\socketcallback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\stdallocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

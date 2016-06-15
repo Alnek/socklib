@@ -4,6 +4,8 @@
 #include "console.h"
 #include "connection.h"
 
+#include "stdallocator.h"
+
 AcceptProgramm::AcceptProgramm()
     //: mSocket(socket)
 {
@@ -13,6 +15,8 @@ AcceptProgramm::AcceptProgramm()
     mSocket.Listen();
     mSocket.SetCallback(this);
     mSocket.AsyncRead();
+
+    std::vector<char, mmap_allocator<char> > test;
 }
 
 AcceptProgramm::~AcceptProgramm()

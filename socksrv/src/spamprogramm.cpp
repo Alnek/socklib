@@ -1,6 +1,5 @@
 #include "spamprogramm.h"
 
-#include "echoprogramm.h"
 #include "instancemanager.h"
 #include "console.h"
 
@@ -36,7 +35,6 @@ void SpamProgramm::DoSend()
     if (true == mSocket.Send(mSendBuffer))
     {
         mSendBuffer.clear();
-        mSocket.SetCallback(new EchoProgramm(mSocket));
     }
     else
     {
@@ -54,7 +52,7 @@ void SpamProgramm::Run()
     if (false == mSendBuffer.empty())
         return;
 
-    char buf[4];
+    char buf[100*1024];
     for (auto i = 0; i != sizeof(buf); ++i)
     {
         buf[i] = 'a' + rand() % ('a' - 'z');

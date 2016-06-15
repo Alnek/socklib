@@ -30,6 +30,7 @@
     <ClInclude Include="include\socket.h" />
     <ClInclude Include="include\socketcallback.h" />
     <ClInclude Include="include\socketobject.h" />
+    <ClInclude Include="include\stdallocator.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7F8CCFE4-2D14-4A67-88C8-43DCD82AE531}</ProjectGuid>
