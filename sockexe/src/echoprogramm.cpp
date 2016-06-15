@@ -12,7 +12,9 @@ EchoProgramm::EchoProgramm(Socket& socket)
     mRecvBuffer.reserve(1024);
     mSendBuffer.reserve(1024);
 
-    mSocket.AsyncRead();
+    const char hello[] = "hello\n";
+    mSendBuffer.insert(mSendBuffer.end(), &hello[0], &hello[sizeof(hello)]);
+    mSocket.AsyncWrite();
 }
 
 EchoProgramm::~EchoProgramm()
@@ -24,11 +26,17 @@ void EchoProgramm::DoRecv()
 {
     if (true == mSocket.Recv(mRecvBuffer))
     {
-        mSocket.SetCallback(new SpamProgramm(mSocket));
-        /*mSendBuffer.insert(mSendBuffer.end(), mRecvBuffer.begin(), mRecvBuffer.end());
-
+        mSendBuffer.insert(mSendBuffer.end(), mRecvBuffer.begin(), mRecvBuffer.end());
         mRecvBuffer.clear();
-        mSocket.AsyncWrite();*/
+
+        if (mSendBuffer.end() == std::find(mSendBuffer.begin(), mSendBuffer.end(), '\r'))
+        {
+            mSocket.AsyncRead();
+        }
+        else
+        {
+            mSocket.AsyncWrite();
+        }
     }
     else
     {

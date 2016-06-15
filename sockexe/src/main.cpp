@@ -24,14 +24,15 @@ void ShutdownConnection(const std::vector<std::string>& tokens, void*)
     }
 
     uint64_t id = _atoi64(tokens[1].c_str());
-    //Runnable* runnable = ProcessManager::GetInstance().FindById(id);
-    //if (nullptr == runnable)
+    Socket* socket = ConnectionManager::GetInstance().FindById(id);
+    if (nullptr == socket)
     {
-        LOG("shutdown: failed to find programm with ID=" << id);
+        LOG("shutdown: failed to find socket with ID=" << id);
         return;
     }
 
-    //runnable->Shutdown();
+    //socket->SetCallback(nullptr);
+    socket->Close();
 }
 
 void ListConnections(const std::vector<std::string>&, void*)
@@ -52,7 +53,7 @@ DWORD WINAPI run(LPVOID ptr)
 {
     while (runFlag)
     {
-        Sleep(0);
+        Sleep(1);
         Console::GetInstance().Process();
     }
     return 0;
@@ -69,18 +70,15 @@ int main()
 
     ConnectionManager& cm = ConnectionManager::GetInstance();
 
-    //Socket server;
-    //server.SetCallback(new AcceptProgramm(server));
     new AcceptProgramm;
 
     while (runFlag)
     {
+        Console::GetInstance().ProcessQueue();
         ProcessManager::GetInstance().Run(120);
         cm.Select(100);
     }
 
-    //server.SetCallback(nullptr);
-    //server.Close();
     cm.Shutdown();
 
     WaitForSingleObject(thread, INFINITE);

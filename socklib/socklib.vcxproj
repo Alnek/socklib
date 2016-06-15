@@ -84,11 +84,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)target\</OutDir>
-    <IntDir>$(SolutionDir)intermidiate\$(ProjectName)\</IntDir>
+    <IntDir>$(SolutionDir)intermediate\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)target\</OutDir>
-    <IntDir>$(SolutionDir)intermidiate\$(ProjectName)\</IntDir>
+    <IntDir>$(SolutionDir)intermediate\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

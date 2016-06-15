@@ -19,13 +19,13 @@ ConnectionManager& ConnectionManager::GetInstance()
 
 void ConnectionManager::Shutdown()
 {
-    std::vector<std::shared_ptr<SystemSocket> > copy(mSockets);
+    std::vector<Socket> copy(mSockets);
     mFDMap.clear();
     mSockets.clear();
 
     for (auto it = copy.begin(); it != copy.end(); ++it)
     {
-        (*it)->callback = nullptr;
+        it->SetCallback(nullptr);
     }
     copy.clear();
 
@@ -38,32 +38,37 @@ void ConnectionManager::Shutdown()
 
 ConnectionManager::ConnectionManager()
 {
-    SystemSocket::Init();
-    mSockets.reserve(SystemSocket::MAX);
-    mRSet.reserve(SystemSocket::MAX);
-    mWSet.reserve(SystemSocket::MAX);
-    mXSet.reserve(SystemSocket::MAX);
+    Socket::Init();
+    mSockets.reserve(Socket::MAX);
+    mRSet.reserve(Socket::MAX);
+    mWSet.reserve(Socket::MAX);
+    mXSet.reserve(Socket::MAX);
 }
 
 ConnectionManager::~ConnectionManager()
 {
-    SystemSocket::Cleanup();
+    Socket::CleanUp();
 }
 
-void ConnectionManager::Register(std::shared_ptr<SystemSocket> socket)
+void ConnectionManager::Register(Socket socket)
 {
     mSockets.push_back(socket);
 
     const size_t lastIndex = mSockets.size() - 1;
-    mFDMap[socket->fd] = lastIndex;
+    mFDMap[socket.GetFD()] = lastIndex;
 }
 
-void ConnectionManager::Unregister(std::shared_ptr<SystemSocket> socket)
+void ConnectionManager::Unregister(Socket socket)
 {
     auto it = std::find(mSockets.begin(), mSockets.end(), socket);
     if (it != mSockets.end()) mSockets.erase(it);
 
-    mFDMap.erase(socket->fd);
+    mFDMap.clear();
+    int index = 0;
+    for (auto it = mSockets.begin(); it != mSockets.end(); ++it)
+    {
+        mFDMap[it->GetFD()] = index++;
+    }
 }
 
 void ConnectionManager::Select(uint64_t nanoSec)
@@ -75,60 +80,65 @@ void ConnectionManager::Select(uint64_t nanoSec)
     // fill
     for (auto it = mSockets.begin(); it != mSockets.end(); ++it)
     {
-        SystemSocket& s = **it;
-        if (0 == s.fd || SystemSocket::INVALID == s.fd) continue;
+        Socket& s = *it;
+        if (0 == s.GetFD() || Socket::INVALID == s.GetFD()) continue;
 
-        if (Socket::READ & s.state) mRSet.push_back(s.fd);
-        if (Socket::WRITE & s.state) mWSet.push_back(s.fd);
-        mXSet.push_back(s.fd);
+        if (Socket::READ & s.GetState()) mRSet.push_back(s.GetFD());
+        if (Socket::WRITE & s.GetState()) mWSet.push_back(s.GetFD());
+        mXSet.push_back(s.GetFD());
     }
 
-    if (false == SystemSocket::Select(nanoSec == FOREVER ? nullptr : &nanoSec, mRSet, mWSet, mXSet))
+    if (false == Socket::Select(nanoSec == FOREVER ? nullptr : &nanoSec, mRSet, mWSet, mXSet))
         return;
 
     // process
     for (auto it = mRSet.begin(); it != mRSet.end(); ++it)
     {
-        std::shared_ptr<SystemSocket> socket = FindByFD(*it);
-        if (socket)
+        Socket* socket = FindByFD(*it);
+        if (socket) socket->CancelAsyncRead();
+        if (socket && socket->GetCallback())
         {
-            socket->state &= (~Socket::READ);
-            socket->callback->DoRecv();
+            socket->GetCallback()->DoRecv();
         }
     }
     for (auto it = mWSet.begin(); it != mWSet.end(); ++it)
     {
-        std::shared_ptr<SystemSocket> socket = FindByFD(*it);
-        if (socket)
+        Socket* socket = FindByFD(*it);
+        if (socket) socket->CancelAsyncWrite();
+        if (socket && socket->GetCallback())
         {
-            socket->state &= (~Socket::WRITE);
-            socket->callback->DoSend();
+            socket->GetCallback()->DoSend();
         }
     }
     for (auto it = mXSet.begin(); it != mXSet.end(); ++it)
     {
-        std::shared_ptr<SystemSocket> socket = FindByFD(*it);
-        if (socket)
+        Socket* socket = FindByFD(*it);
+        if (socket) socket->CancelAsync();
+        if (socket && socket->GetCallback())
         {
-            socket->state = 0;
-            socket->callback->HandleError();
+            socket->GetCallback()->HandleError();
         }
     }
 }
 
-std::shared_ptr<SystemSocket> ConnectionManager::FindByFD(uintptr_t fd) const
+Socket* ConnectionManager::FindByFD(uintptr_t fd)
 {
     auto it = mFDMap.find(fd);
     if (it == mFDMap.end()) return nullptr;
 
-    return mSockets[it->second];
+    return &mSockets[it->second];
 }
 
 void ConnectionManager::List(std::vector<uint64_t>& ids) const
 {
     for (auto it = mSockets.begin(); it != mSockets.end(); ++it)
     {
-        if ((*it)->conInfo.IsValid())
-            ids.push_back((*it)->fd);
+        //if (it->GetConnInfo().IsValid())
+            ids.push_back(it->GetFD());
     }
+}
+
+Socket* ConnectionManager::FindById(uintptr_t id)
+{
+    return FindByFD(id);
 }

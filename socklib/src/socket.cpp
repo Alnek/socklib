@@ -5,25 +5,28 @@
 #include "socketcallback.h"
 #include "socketobject.h"
 
+const uint32_t Socket::MAX = SystemSocket::MAX;
+const uintptr_t Socket::INVALID = SystemSocket::INVALID;
+
+void Socket::Init() { SystemSocket::Init(); }
+void Socket::CleanUp() { SystemSocket::CleanUp(); };
+bool Socket::Select(uint64_t* nanoSec, std::vector<uintptr_t>& rSet, std::vector<uintptr_t>& wSet, std::vector<uintptr_t>& xSet)
+{
+    return SystemSocket::Select(nanoSec, rSet, wSet, xSet);
+}
+
 Socket::Socket()
     : mSystemSocket(new SystemSocket)
 {
     mSystemSocket->Create();
-    ConnectionManager::GetInstance().Register(mSystemSocket);
-}
-
-Socket::Socket(const Socket& socket) //default is ok
-{
-    mSystemSocket = socket.mSystemSocket;
-    auto refCount = mSystemSocket.use_count();
-    refCount = refCount;
+    ConnectionManager::GetInstance().Register(*this);
 }
 
 Socket::Socket(uintptr_t s)
     : mSystemSocket(new SystemSocket)
 {
     mSystemSocket->fd = s;
-    ConnectionManager::GetInstance().Register(mSystemSocket);
+    ConnectionManager::GetInstance().Register(*this);
 }
 
 Socket::~Socket()
@@ -31,7 +34,7 @@ Socket::~Socket()
     const auto refCount = mSystemSocket.use_count();
     if (refCount <= 2) // one for this and one for ConnectionManager;
     {
-        ConnectionManager::GetInstance().Unregister(mSystemSocket);
+        ConnectionManager::GetInstance().Unregister(*this);
     }
 }
 
@@ -94,4 +97,34 @@ void Socket::Shutdown()
 void Socket::Close()
 {
     mSystemSocket->Close();
+}
+
+uintptr_t Socket::GetFD() const
+{
+    return mSystemSocket->GetFD();
+}
+
+int Socket::GetState() const
+{
+    return mSystemSocket->state;
+}
+
+SocketCallback* Socket::GetCallback()
+{
+    return mSystemSocket->callback.get();
+}
+
+void Socket::CancelAsyncRead()
+{
+    mSystemSocket->state &= (~Socket::READ);
+}
+
+void Socket::CancelAsyncWrite()
+{
+    mSystemSocket->state &= (~Socket::WRITE);
+}
+
+bool Socket::operator==(const Socket& rhs) const
+{
+    return this->mSystemSocket->fd == rhs.mSystemSocket->fd;
 }

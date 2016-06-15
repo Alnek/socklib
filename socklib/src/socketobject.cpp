@@ -17,13 +17,15 @@ void SystemSocket::Init()
     assert(0 == r && "failed to Startup sockets");
 }
 
-void SystemSocket::Cleanup()
+void SystemSocket::CleanUp()
 {
     WSACleanup();
 }
 
 bool SystemSocket::Select(uint64_t* nanoSec, std::vector<uintptr_t>& rSet, std::vector<uintptr_t>& wSet, std::vector<uintptr_t>& xSet)
 {
+    if (0 == rSet.size() && 0 == wSet.size() && 0 == xSet.size()) return false;
+
     fd_set rset;
     fd_set wset;
     fd_set xset;
@@ -173,6 +175,7 @@ bool SystemSocket::Recv(std::vector<char>& buffer)
     }
     else
     {
+        //buffer.capacity()
         buffer.insert(buffer.end(), &buf[0], &buf[r]);
     }
     return true;

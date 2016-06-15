@@ -1,12 +1,13 @@
 #ifndef __CONNECTION_H__
 #define __CONNECTION_H__
 
+#include "socket.h"
+
 #include <memory>
 #include <map>
 #include <vector>
 
 class SocketCallback;
-class SystemSocket;
 
 class ConnectionManager
 {
@@ -18,18 +19,19 @@ public:
     void Shutdown();
 
     void List(std::vector<uint64_t>& ids) const;
+    Socket* FindById(uintptr_t id);
 private:
     friend class Socket;
 
     ConnectionManager();
     ~ConnectionManager();
 
-    void Register(std::shared_ptr<SystemSocket> socket);
-    void Unregister(std::shared_ptr<SystemSocket> socket);
+    void Register(Socket socket);
+    void Unregister(Socket socket);
 
-    std::shared_ptr<SystemSocket> FindByFD(uintptr_t fd) const;
+    Socket* FindByFD(uintptr_t fd);
 
-    std::vector<std::shared_ptr<SystemSocket> > mSockets;
+    std::vector<Socket> mSockets;
     std::map<uintptr_t, size_t> mFDMap;
 
     std::vector<uintptr_t> mRSet;

@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>sock</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>sock_exe</ProjectName>
+    <ProjectName>sock_srv</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -73,12 +73,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)target\</OutDir>
-    <IntDir>$(SolutionDir)intermidiate\$(ProjectName)\</IntDir>
+    <IntDir>$(SolutionDir)intermediate\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)target\</OutDir>
-    <IntDir>$(SolutionDir)intermidiate\$(ProjectName)\</IntDir>
+    <IntDir>$(SolutionDir)intermediate\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -157,6 +157,7 @@
     <ClCompile Include="src\console.cpp" />
     <ClCompile Include="src\echoprogramm.cpp" />
     <ClCompile Include="src\instancemanager.cpp" />
+    <ClCompile Include="src\lockobject.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\processmanager.cpp" />
     <ClCompile Include="src\spamprogramm.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="include\console.h" />
     <ClInclude Include="include\echoprogramm.h" />
     <ClInclude Include="include\instancemanager.h" />
+    <ClInclude Include="include\lockobject.h" />
     <ClInclude Include="include\processmanager.h" />
     <ClInclude Include="include\spamprogramm.h" />
   </ItemGroup>

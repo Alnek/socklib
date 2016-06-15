@@ -1,5 +1,7 @@
 #include "console.h"
 
+#include "lockobject.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -30,8 +32,14 @@ Console& Console::GetInstance()
 
 Console::Console()
 {
+    mLockObject = new LockObject;
     mCommand.reserve(256);
     InitCmd();
+}
+
+Console::~Console()
+{
+    delete mLockObject;
 }
 
 void Console::InitCmd()
@@ -127,36 +135,9 @@ void Console::Process()
         INPUT_RECORD& record = records[i];
         if (KEY_EVENT == record.EventType && 1 == record.Event.KeyEvent.bKeyDown)
         {
-            if (VK_RETURN == record.Event.KeyEvent.wVirtualKeyCode)
-            {
-                std::cout << std::endl;
-                Execute();
-            }
-            else if (VK_BACK == record.Event.KeyEvent.wVirtualKeyCode)
-            {
-                if (false == mCommand.empty())
-                {
-                    std::cout << '\b' << ' ' << '\b';
-                    mCommand.pop_back();
-                }
-            }
-            else if (VK_UP == record.Event.KeyEvent.wVirtualKeyCode)
-            {
-                PrevCommand();
-            }
-            else if (VK_DOWN == record.Event.KeyEvent.wVirtualKeyCode)
-            {
-                NextCommand();
-            }
-
-            const char c = record.Event.KeyEvent.uChar.AsciiChar;
-            if (0 == c || '\r' == c || '\b' == c)
-            {}
-            else
-            {
-                std::cout << c;
-                mCommand.push_back(c);
-            }
+            mLockObject->Lock();
+            mCommandQueue.push(record);
+            mLockObject->Unlock();
         }
     }
 }
@@ -182,4 +163,49 @@ void Console::BindAction(const char* command, ConsoleCallback action, void* cont
     tmp.func = action;
     tmp.context = context;
     mActions[command] = tmp;
+}
+
+void Console::ProcessQueue()
+{
+    mLockObject->Lock();
+
+    while(false == mCommandQueue.empty())
+    {
+        INPUT_RECORD& record = mCommandQueue.front();
+        if (VK_RETURN == record.Event.KeyEvent.wVirtualKeyCode)
+        {
+            std::cout << std::endl;
+            Execute();
+        }
+        else if (VK_BACK == record.Event.KeyEvent.wVirtualKeyCode)
+        {
+            if (false == mCommand.empty())
+            {
+                std::cout << '\b' << ' ' << '\b';
+                mCommand.pop_back();
+            }
+        }
+        else if (VK_UP == record.Event.KeyEvent.wVirtualKeyCode)
+        {
+            PrevCommand();
+        }
+        else if (VK_DOWN == record.Event.KeyEvent.wVirtualKeyCode)
+        {
+            NextCommand();
+        }
+
+        const char c = record.Event.KeyEvent.uChar.AsciiChar;
+        if (0 == c || '\r' == c || '\b' == c)
+        {
+        }
+        else
+        {
+            std::cout << c;
+            mCommand.push_back(c);
+        }
+
+        mCommandQueue.pop();
+    }
+
+    mLockObject->Unlock();
 }

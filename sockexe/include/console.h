@@ -3,9 +3,12 @@
 
 #include <deque>
 #include <map>
+#include <queue>
 #include <string>
 #include <sstream>
 #include <vector>
+
+#include <windows.h>
 
 #define LOG(expression) \
 {\
@@ -15,6 +18,8 @@
 }
 
 typedef void (*ConsoleCallback)(const std::vector<std::string>&, void*);
+
+class LockObject;
 
 class Console
 {
@@ -26,6 +31,7 @@ public:
     void Print(const char* message, size_t len = 0);
 
     void BindAction(const char* command, ConsoleCallback action, void* context = nullptr);
+    void ProcessQueue();
 private:
     struct Action
     {
@@ -34,6 +40,7 @@ private:
     };
 
     Console();
+    ~Console();
 
     void InitCmd();
     void CleanLine();
@@ -46,6 +53,9 @@ private:
 
     std::deque<std::string> mHistory;
     uint32_t mHistoryIndex;
+
+    std::queue<INPUT_RECORD> mCommandQueue;
+    LockObject* mLockObject;
 };
 
 #endif

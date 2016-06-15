@@ -22,13 +22,14 @@ AcceptProgramm::~AcceptProgramm()
 
 void AcceptProgramm::DoRecv()
 {
-    /*Socket s = mSocket.Accept();
+    Socket s = mSocket.Accept();
     if (false == s.GetConnInfo().IsValid())
         return;
 
-    InstanceManager::GetInstance().StartProgramm(s);*/
-    mSocket.SetCallback(nullptr);
-    //mSocket.AsyncRead();
+    InstanceManager::GetInstance().StartProgramm(s);
+
+    //mSocket.SetCallback(nullptr);
+    mSocket.AsyncRead();
 }
 
 void AcceptProgramm::HandleError()

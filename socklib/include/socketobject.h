@@ -16,13 +16,12 @@ public:
 
 private:
     friend class Socket;            // only Socket can spawn SystemSocket
-    friend class ConnectionManager; // for Init/Cleanup/GetFD
 
     static const uint32_t MAX;
     static const uintptr_t INVALID;
 
     static void Init();             // OS specific init
-    static void Cleanup();          // OS specific cleanup
+    static void CleanUp();          // OS specific cleanup
     static bool Select(uint64_t* nanoSec, std::vector<uintptr_t>& rSet, std::vector<uintptr_t>& wSet, std::vector<uintptr_t>& xSet);
 
     SystemSocket();
