@@ -52,13 +52,13 @@ void SpamProgramm::Run()
     if (false == mSendBuffer.empty())
         return;
 
-    /*char buf[100*1024];
+    char buf[10500];
     for (auto i = 0; i != sizeof(buf); ++i)
     {
         buf[i] = 'a' + rand() % ('a' - 'z');
     }
-    mSendBuffer.insert(mSendBuffer.end(), &buf[0], &buf[sizeof(buf)]);*/
+    mSendBuffer.insert(mSendBuffer.end(), &buf[0], &buf[sizeof(buf)]);
 
-    mSendBuffer.resize(10 * 1024 * 1024);
+    //mSendBuffer.resize(10500);
     mSocket.AsyncWrite();
 }

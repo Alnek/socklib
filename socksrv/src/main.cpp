@@ -122,8 +122,9 @@ int main()
     while (runFlag)
     {
         Console::GetInstance().ProcessQueue();
-        ProcessManager::GetInstance().Run(120);
-        cm.Select(100);
+        ProcessManager::GetInstance().Run(100);
+        cm.Select(0);
+        Sleep(0);
     }
 
     cm.Shutdown();

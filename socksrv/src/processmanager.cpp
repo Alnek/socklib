@@ -34,13 +34,13 @@ void ProcessManager::Run(uint32_t fps)
     uint64_t curTick = GetTickCount64();
     uint64_t delta = curTick - mStartTick;
 
-    /*mFPS = mFPS/2 + 500 * mFrameCounter / (delta + 1);
+    mFPS = mFPS/2 + 500 * mFrameCounter / (delta + 1);
     if (mFPS >= fps)
     {
         Sleep(0);
         mSkipCounter++;
         return;
-    }*/
+    }
 
     for (auto it = mRunnables.begin(); it != mRunnables.end(); ++it)
     {

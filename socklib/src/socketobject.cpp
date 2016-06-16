@@ -1,6 +1,6 @@
 #include "socketobject.h"
 
-#define SOCKLIB_IPV6 1
+#define SOCKLIB_IPV6 0
 #define FD_SETSIZE  10240
 
 #include <algorithm>
@@ -112,7 +112,7 @@ void SystemSocket::Create()
     int r = setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&opt, sizeof(opt));
     assert(0 == r && "failed to setsockopt");
 #else
-    SOCKET fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     assert(fd != INVALID_SOCKET && "failed to create socket");
 #endif
 }

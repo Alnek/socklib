@@ -11,7 +11,8 @@ AcceptProgramm::AcceptProgramm(Socket& socket)
 {
     Console::GetInstance().Print("AcceptProgramm");
 
-    mSocket.Bind("0.0.0.0", 7788);
+    //mSocket.Bind("0.0.0.0", 7788);
+    mSocket.Bind("127.0.0.1", 7788);
     mSocket.Listen();
     //mSocket.SetCallback(this);
     mSocket.AsyncRead();

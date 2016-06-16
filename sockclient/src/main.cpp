@@ -11,10 +11,10 @@ int main()
     Socket client;
 
     std::string buffer;
-    buffer.reserve(1*1024*1024);
+    buffer.reserve(100*1024);
     uint64_t counter = 0;
 
-    client.Connect("::1", 7788);
+    client.Connect("127.0.0.1", 7788);
     DWORD prev = GetTickCount();
     while(true)
     {
@@ -24,9 +24,9 @@ int main()
         buffer.clear();
 
         DWORD delta = GetTickCount() - prev;
-        if (delta > 200)
+        if (delta > 333)
         {
-            std::cout << "BPS: " << (1000 * counter)/delta/1024/1024 << " MB/sec" << std::endl;
+            std::cout << "BPS: " << (1000 * counter)/(delta * 1024) << " KB/sec" << std::endl;
             counter = 0;
             prev += delta;
         }
