@@ -59,6 +59,53 @@ DWORD WINAPI run(LPVOID ptr)
     return 0;
 }
 
+class AcceptStrategy : public ConnectionManagerStrategy
+{
+    const int MAX_CLIENTS = Socket::MAX_SOCKETS;
+public:
+    AcceptStrategy()
+        : mServerSocket(nullptr)
+    {}
+
+    virtual void onStrategyInstalled(int totalClients)
+    {
+        StartServer();
+    }
+
+    virtual void onClientConnected(int totalClients)
+    {
+        if (totalClients >= MAX_CLIENTS)
+            StopServer();
+    }
+
+    virtual void onClientDisconnected(int totalClients)
+    {
+        if (totalClients < MAX_CLIENTS)
+            StartServer();
+    }
+
+private:
+    void StartServer()
+    {
+        if (nullptr == mServerSocket)
+        {
+            mServerSocket = new Socket;
+            mServerSocket->SetCallback(new AcceptProgramm(*mServerSocket));
+        }
+    }
+    void StopServer()
+    {
+        if (nullptr != mServerSocket)
+        {
+            mServerSocket->SetCallback(nullptr);
+            delete mServerSocket;
+            mServerSocket = nullptr;
+        }
+    }
+
+    Socket* mServerSocket;
+};
+
 int main()
 {
     Console::GetInstance().BindAction("exit", Exit);
@@ -68,9 +115,9 @@ int main()
     DWORD threadId;
     HANDLE thread = CreateThread(nullptr, 0, run, nullptr, 0, &threadId);
 
+    AcceptStrategy as;
     ConnectionManager& cm = ConnectionManager::GetInstance();
-
-    new AcceptProgramm;
+    cm.InstallStrategy(&as);
 
     while (runFlag)
     {

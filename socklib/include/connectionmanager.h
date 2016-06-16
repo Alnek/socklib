@@ -9,6 +9,17 @@
 
 class SocketCallback;
 
+class ConnectionManagerStrategy
+{
+public:
+    virtual ~ConnectionManagerStrategy() {}
+
+    virtual void onStrategyInstalled(int totalClients) = 0;
+    virtual void onClientConnected(int totalClients) = 0;
+    virtual void onClientDisconnected(int totalClients) = 0;
+    //
+};
+
 class ConnectionManager
 {
 public:
@@ -20,6 +31,8 @@ public:
 
     void List(std::vector<uint64_t>& ids) const;
     Socket* FindById(uintptr_t id);
+
+    void InstallStrategy(ConnectionManagerStrategy* strategy);
 private:
     friend class Socket;
 
@@ -37,6 +50,9 @@ private:
     std::vector<uintptr_t> mRSet;
     std::vector<uintptr_t> mWSet;
     std::vector<uintptr_t> mXSet;
+
+    //connect/disconnect events
+    ConnectionManagerStrategy* mStrategy;
 };
 
 #endif

@@ -1,10 +1,13 @@
 #include "socketobject.h"
 
 #define SOCKLIB_IPV6 1
-#define FD_SETSIZE  10000
+#define FD_SETSIZE  10240
 
+#include <algorithm>
 #include <assert.h>
 #include <ws2tcpip.h>
+
+//#undef min
 
 const uint32_t SystemSocket::MAX = FD_SETSIZE;
 const uintptr_t SystemSocket::INVALID = INVALID_SOCKET;
@@ -114,6 +117,24 @@ void SystemSocket::Create()
 #endif
 }
 
+bool SystemSocket::Connect(const char* addr, uint16_t port)
+{
+#if SOCKLIB_IPV6
+    SOCKADDR_IN6 sockAddr = { 0 };
+    sockAddr.sin6_port = htons(port);
+    sockAddr.sin6_family = AF_INET6;
+    inet_pton(AF_INET6, addr, &(sockAddr.sin6_addr));
+#else
+    SOCKADDR_IN sockAddr;
+    sockAddr.sin_port = htons(port);
+    sockAddr.sin_family = AF_INET;
+    inet_pton(AF_INET, addr, &(sockAddr.sin_addr));
+#endif
+    int r = connect(fd, (LPSOCKADDR)&sockAddr, sizeof(sockAddr));
+    assert(0 == r && "failed to connect");
+    return 0 == r;
+}
+
 bool SystemSocket::Bind(const char* addr, uint16_t port)
 {
 #if SOCKLIB_IPV6
@@ -165,23 +186,25 @@ Socket SystemSocket::Accept()
     return result;
 }
 
-bool SystemSocket::Recv(std::vector<char>& buffer)
+bool SystemSocket::Recv(std::string& buffer)
 {
-    char buf[100*1024];
-    int r = recv(fd, buf, sizeof(buf), 0);
+    assert(0 == buffer.size() && "clear buffer expected");
+    assert(0 != buffer.capacity() && "pre-allocated buffer expected");
+    buffer.resize(buffer.capacity());
+    int r = recv(fd, &buffer[0], static_cast<int>(buffer.capacity()), 0);
     if (r <= 0)
     {
+        buffer.resize(0);
         return false;
     }
     else
     {
-        //buffer.capacity()
-        buffer.insert(buffer.end(), &buf[0], &buf[r]);
+        buffer.resize(r);
     }
     return true;
 }
 
-bool SystemSocket::Send(const std::vector<char>& buffer)
+bool SystemSocket::Send(const std::string& buffer)
 {
     int r = send(fd, &buffer[0], static_cast<int>(buffer.size()), 0);
     if (r <= 0)

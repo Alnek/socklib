@@ -9,7 +9,7 @@ SpamProgramm::SpamProgramm(Socket& socket)
     Console::GetInstance().Print("SpamProgramm");
 
     //mRecvBuffer.reserve(1024);
-    //mSendBuffer.reserve(1024);
+    mSendBuffer.reserve(1024*1024);
 
     ProcessManager::GetInstance().Register(this);
 
@@ -52,13 +52,13 @@ void SpamProgramm::Run()
     if (false == mSendBuffer.empty())
         return;
 
-    char buf[100*1024];
+    /*char buf[100*1024];
     for (auto i = 0; i != sizeof(buf); ++i)
     {
         buf[i] = 'a' + rand() % ('a' - 'z');
     }
-    //buf[sizeof(buf) - 1] = 0;
+    mSendBuffer.insert(mSendBuffer.end(), &buf[0], &buf[sizeof(buf)]);*/
 
-    mSendBuffer.insert(mSendBuffer.end(), &buf[0], &buf[sizeof(buf)]);
+    mSendBuffer.resize(10 * 1024 * 1024);
     mSocket.AsyncWrite();
 }

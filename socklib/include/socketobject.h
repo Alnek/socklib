@@ -5,6 +5,7 @@
 #include "socket.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 
 class SocketCallback;
@@ -29,11 +30,12 @@ private:
     SystemSocket& operator=(const SystemSocket&);
 
     void Create();
+    bool Connect(const char* addr, uint16_t port);
     bool Bind(const char* addr, uint16_t port);
     bool Listen();
     Socket Accept();
-    bool Recv(std::vector<char>& buffer);
-    bool Send(const std::vector<char>& buffer);
+    bool Recv(std::string& buffer);
+    bool Send(const std::string& buffer);
     void Shutdown();
     void Close();
 

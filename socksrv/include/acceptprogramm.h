@@ -10,7 +10,7 @@ public:
     //virtual void DoSend() override;
     virtual void HandleError() override;
 
-    AcceptProgramm();
+    AcceptProgramm(Socket& socket);
     virtual ~AcceptProgramm();
 
 private:

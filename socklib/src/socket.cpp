@@ -5,7 +5,7 @@
 #include "socketcallback.h"
 #include "socketobject.h"
 
-const uint32_t Socket::MAX = SystemSocket::MAX;
+const uint32_t Socket::MAX_SOCKETS = SystemSocket::MAX;
 const uintptr_t Socket::INVALID = SystemSocket::INVALID;
 
 void Socket::Init() { SystemSocket::Init(); }
@@ -63,6 +63,11 @@ const ConnectionInfo& Socket::GetConnInfo() const
     return mSystemSocket->conInfo;
 }
 
+bool Socket::Connect(const char* addr, uint16_t port)
+{
+    return mSystemSocket->Connect(addr, port);
+}
+
 bool Socket::Bind(const char* addr, uint16_t port)
 {
     return mSystemSocket->Bind(addr, port);
@@ -78,12 +83,12 @@ Socket Socket::Accept()
     return mSystemSocket->Accept();
 }
 
-bool Socket::Recv(std::vector<char>& buffer)
+bool Socket::Recv(std::string& buffer)
 {
     return mSystemSocket->Recv(buffer);
 }
 
-bool Socket::Send(const std::vector<char>& buffer)
+bool Socket::Send(const std::string& buffer)
 {
     return mSystemSocket->Send(buffer);
 }

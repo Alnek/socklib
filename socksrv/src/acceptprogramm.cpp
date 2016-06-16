@@ -6,14 +6,14 @@
 
 #include "stdallocator.h"
 
-AcceptProgramm::AcceptProgramm()
-    //: mSocket(socket)
+AcceptProgramm::AcceptProgramm(Socket& socket)
+    : mSocket(socket)
 {
     Console::GetInstance().Print("AcceptProgramm");
 
     mSocket.Bind("0.0.0.0", 7788);
     mSocket.Listen();
-    mSocket.SetCallback(this);
+    //mSocket.SetCallback(this);
     mSocket.AsyncRead();
 
     std::vector<char, mmap_allocator<char> > test;
@@ -26,14 +26,13 @@ AcceptProgramm::~AcceptProgramm()
 
 void AcceptProgramm::DoRecv()
 {
+    mSocket.AsyncRead();
+
     Socket s = mSocket.Accept();
     if (false == s.GetConnInfo().IsValid())
         return;
 
     InstanceManager::GetInstance().StartProgramm(s);
-
-    //mSocket.SetCallback(nullptr);
-    mSocket.AsyncRead();
 }
 
 void AcceptProgramm::HandleError()

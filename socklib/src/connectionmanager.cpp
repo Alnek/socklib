@@ -37,12 +37,13 @@ void ConnectionManager::Shutdown()
 }
 
 ConnectionManager::ConnectionManager()
+    : mStrategy(nullptr)
 {
     Socket::Init();
-    mSockets.reserve(Socket::MAX);
-    mRSet.reserve(Socket::MAX);
-    mWSet.reserve(Socket::MAX);
-    mXSet.reserve(Socket::MAX);
+    mSockets.reserve(Socket::MAX_SOCKETS);
+    mRSet.reserve(Socket::MAX_SOCKETS);
+    mWSet.reserve(Socket::MAX_SOCKETS);
+    mXSet.reserve(Socket::MAX_SOCKETS);
 }
 
 ConnectionManager::~ConnectionManager()
@@ -56,6 +57,8 @@ void ConnectionManager::Register(Socket socket)
 
     const size_t lastIndex = mSockets.size() - 1;
     mFDMap[socket.GetFD()] = lastIndex;
+
+    if (nullptr != mStrategy) mStrategy->onClientConnected(static_cast<int>(mSockets.size()));
 }
 
 void ConnectionManager::Unregister(Socket socket)
@@ -69,6 +72,8 @@ void ConnectionManager::Unregister(Socket socket)
     {
         mFDMap[it->GetFD()] = index++;
     }
+
+    if (nullptr != mStrategy) mStrategy->onClientDisconnected(static_cast<int>(mSockets.size()));
 }
 
 void ConnectionManager::Select(uint64_t nanoSec)
@@ -133,7 +138,7 @@ void ConnectionManager::List(std::vector<uint64_t>& ids) const
 {
     for (auto it = mSockets.begin(); it != mSockets.end(); ++it)
     {
-        //if (it->GetConnInfo().IsValid())
+        if (it->GetConnInfo().IsValid())
             ids.push_back(it->GetFD());
     }
 }
@@ -141,4 +146,10 @@ void ConnectionManager::List(std::vector<uint64_t>& ids) const
 Socket* ConnectionManager::FindById(uintptr_t id)
 {
     return FindByFD(id);
+}
+
+void ConnectionManager::InstallStrategy(ConnectionManagerStrategy* strategy)
+{
+    mStrategy = strategy;
+    if (nullptr != mStrategy) mStrategy->onStrategyInstalled(static_cast<int>(mSockets.size()));
 }

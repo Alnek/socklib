@@ -72,7 +72,8 @@ void Console::Execute()
 
     if (tokens.size() > 0)
     {
-        mHistory.push_front(initialCommand);
+        if (true == mHistory.empty() || initialCommand != mHistory.front()) mHistory.push_front(initialCommand);
+        if (mHistory.size() > 500) mHistory.pop_back();
         mHistoryIndex = 0;
 
         const std::string& command = tokens[0];

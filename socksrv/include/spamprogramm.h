@@ -5,7 +5,7 @@
 #include "socket.h"
 #include "socketcallback.h"
 
-#include <vector>
+#include <string>
 
 class SpamProgramm
     : public SocketCallback
@@ -22,8 +22,8 @@ public:
     virtual ~SpamProgramm();
 
 private:
-    std::vector<char> mRecvBuffer;
-    std::vector<char> mSendBuffer;
+    std::string mRecvBuffer;
+    std::string mSendBuffer;
 
     Socket mSocket;
 };

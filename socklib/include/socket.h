@@ -2,6 +2,7 @@
 #define __SOCKET_H__
 
 #include <memory>
+#include <string>
 #include <vector>
 
 class SocketCallback;
@@ -11,17 +12,20 @@ struct ConnectionInfo;
 class Socket
 {
 public:
+    static const uint32_t MAX_SOCKETS;
+
     Socket();
     //Socket(const Socket&); //default is ok?
     //Socket& operator=(const Socket&);
     ~Socket();
 
+    bool Connect(const char* addr, uint16_t port);
     bool Bind(const char* addr, uint16_t port);
     bool Listen();
     Socket Accept();
 
-    bool Recv(std::vector<char>& buffer);
-    bool Send(const std::vector<char>& buffer);
+    bool Recv(std::string& buffer);
+    bool Send(const std::string& buffer);
     void Shutdown();
     void Close();
 
@@ -39,7 +43,6 @@ private:
     friend class ConnectionManager;
     friend class SystemSocket;
 
-    static const uint32_t MAX;
     static const uintptr_t INVALID;
     static const int READ = 0x01;
     static const int WRITE = 0x02;
