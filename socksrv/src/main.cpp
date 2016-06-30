@@ -47,6 +47,7 @@ void ListConnections(const std::vector<std::string>&, void*)
     }
     std::string message = ss.str();
     LOG("list: " << message);
+    LOG("list: size = " << ids.size());
 }
 
 DWORD WINAPI run(LPVOID ptr)
@@ -115,21 +116,25 @@ int main()
     DWORD threadId;
     HANDLE thread = CreateThread(nullptr, 0, run, nullptr, 0, &threadId);
 
-    AcceptStrategy as;
+    //AcceptStrategy as;
     ConnectionManager& cm = ConnectionManager::GetInstance();
-    cm.InstallStrategy(&as);
+    //cm.InstallStrategy(&as);
+    Socket s;
+    AcceptProgramm ap(s);
 
     while (runFlag)
     {
         Console::GetInstance().ProcessQueue();
         ProcessManager::GetInstance().Run(100);
-        cm.Select(0);
-        Sleep(0);
+        auto cnt = cm.Join();
+        if (cnt) LOG("Join = " << cnt);
+        if (false == cm.Select(1000))
+            Sleep(10);
     }
 
     cm.Shutdown();
 
     WaitForSingleObject(thread, INFINITE);
-    Sleep(1000);
+    Sleep(200);
     return 0;
 }

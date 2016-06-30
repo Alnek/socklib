@@ -15,6 +15,8 @@ class SystemSocket
 public:
     ~SystemSocket();
 
+    static uint64_t GetThreadId();
+
 private:
     friend class Socket;            // only Socket can spawn SystemSocket
 
@@ -42,6 +44,7 @@ private:
     uintptr_t GetFD() const { return fd; }
 
     uintptr_t fd;
+    bool released;
     std::shared_ptr<SocketCallback> callback;
     int state;
     ConnectionInfo conInfo;

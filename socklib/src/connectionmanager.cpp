@@ -3,6 +3,9 @@
 #include "socketcallback.h"
 #include "socketobject.h"
 
+#include <iostream>
+#include <set>
+
 namespace
 {
     ConnectionManager* sInstance = nullptr;
@@ -19,13 +22,12 @@ ConnectionManager& ConnectionManager::GetInstance()
 
 void ConnectionManager::Shutdown()
 {
-    std::vector<Socket> copy(mSockets);
-    mFDMap.clear();
+    auto copy = mSockets;
     mSockets.clear();
 
     for (auto it = copy.begin(); it != copy.end(); ++it)
     {
-        it->SetCallback(nullptr);
+        it->second->SetCallback(nullptr);
     }
     copy.clear();
 
@@ -40,7 +42,8 @@ ConnectionManager::ConnectionManager()
     : mStrategy(nullptr)
 {
     Socket::Init();
-    mSockets.reserve(Socket::MAX_SOCKETS);
+    //mSockets.reserve(Socket::MAX_SOCKETS);
+
     mRSet.reserve(Socket::MAX_SOCKETS);
     mWSet.reserve(Socket::MAX_SOCKETS);
     mXSet.reserve(Socket::MAX_SOCKETS);
@@ -51,41 +54,69 @@ ConnectionManager::~ConnectionManager()
     Socket::CleanUp();
 }
 
-void ConnectionManager::Register(Socket socket)
+void ConnectionManager::Register(Socket socket, uint64_t threadId)
 {
-    mSockets.push_back(socket);
-
-    const size_t lastIndex = mSockets.size() - 1;
-    mFDMap[socket.GetFD()] = lastIndex;
-
-    if (nullptr != mStrategy) mStrategy->onClientConnected(static_cast<int>(mSockets.size()));
-}
-
-void ConnectionManager::Unregister(Socket socket)
-{
-    auto it = std::find(mSockets.begin(), mSockets.end(), socket);
-    if (it != mSockets.end()) mSockets.erase(it);
-
-    mFDMap.clear();
-    int index = 0;
-    for (auto it = mSockets.begin(); it != mSockets.end(); ++it)
+    if (threadId == GetTID())
     {
-        mFDMap[it->GetFD()] = index++;
+        mSockets[socket.GetFD()].reset(new Socket(socket));
+        if (nullptr != mStrategy) mStrategy->onClientConnected(static_cast<int>(mSockets.size()));
     }
-
-    if (nullptr != mStrategy) mStrategy->onClientDisconnected(static_cast<int>(mSockets.size()));
+    else
+    {
+        mLock.Lock();
+        mRegisterBuffer.push_back(socket);
+        mLock.Unlock();
+    }
 }
 
-void ConnectionManager::Select(uint64_t nanoSec)
+void ConnectionManager::Unregister(Socket socket, uint64_t threadId)
 {
-    if (0 == mSockets.size()) return;
+    if (threadId == GetTID())
+    {
+        auto it = mSockets.find(socket.GetFD());
+        if (it != mSockets.end())
+        {
+            mSockets.erase(it);
+        }
+        if (nullptr != mStrategy) mStrategy->onClientDisconnected(static_cast<int>(mSockets.size()));
+    }
+    else
+    {
+        mLock.Lock();
+        mUnregisterBuffer.push_back(socket);
+        mLock.Unlock();
+    }
+}
+
+size_t ConnectionManager::Join()
+{
+    mLock.Lock();
+    const auto tid = GetTID();
+    for (auto it = mRegisterBuffer.begin(); it != mRegisterBuffer.end(); ++it)
+    {
+        Register(*it, tid);
+    }
+    for (auto it = mUnregisterBuffer.begin(); it != mUnregisterBuffer.end(); ++it)
+    {
+        Unregister(*it, tid);
+    }
+    const auto cnt = mRegisterBuffer.size() + mUnregisterBuffer.size();
+    mRegisterBuffer.clear();
+    mUnregisterBuffer.clear();
+    mLock.Unlock();
+    return cnt;
+}
+
+bool ConnectionManager::Select(uint64_t nanoSec)
+{
+    if (0 == mSockets.size()) return false;
 
     mRSet.clear();mWSet.clear();mXSet.clear();
 
     // fill
     for (auto it = mSockets.begin(); it != mSockets.end(); ++it)
     {
-        Socket& s = *it;
+        Socket& s = *(it->second);
         if (0 == s.GetFD() || Socket::INVALID == s.GetFD()) continue;
 
         if (Socket::READ & s.GetState()) mRSet.push_back(s.GetFD());
@@ -94,7 +125,7 @@ void ConnectionManager::Select(uint64_t nanoSec)
     }
 
     if (false == Socket::Select(nanoSec == FOREVER ? nullptr : &nanoSec, mRSet, mWSet, mXSet))
-        return;
+        return false;
 
     // process
     for (auto it = mRSet.begin(); it != mRSet.end(); ++it)
@@ -124,22 +155,24 @@ void ConnectionManager::Select(uint64_t nanoSec)
             socket->GetCallback()->HandleError();
         }
     }
+
+    return true;
 }
 
 Socket* ConnectionManager::FindByFD(uintptr_t fd)
 {
-    auto it = mFDMap.find(fd);
-    if (it == mFDMap.end()) return nullptr;
+    auto it = mSockets.find(fd);
+    if (it == mSockets.end()) return nullptr;
 
-    return &mSockets[it->second];
+    return it->second.get();
 }
 
 void ConnectionManager::List(std::vector<uint64_t>& ids) const
 {
     for (auto it = mSockets.begin(); it != mSockets.end(); ++it)
     {
-        if (it->GetConnInfo().IsValid())
-            ids.push_back(it->GetFD());
+        if (it->second->GetConnInfo().IsValid())
+            ids.push_back(it->second->GetFD());
     }
 }
 
@@ -152,4 +185,9 @@ void ConnectionManager::InstallStrategy(ConnectionManagerStrategy* strategy)
 {
     mStrategy = strategy;
     if (nullptr != mStrategy) mStrategy->onStrategyInstalled(static_cast<int>(mSockets.size()));
+}
+
+uint64_t ConnectionManager::GetTID()
+{
+    return SystemSocket::GetThreadId();
 }

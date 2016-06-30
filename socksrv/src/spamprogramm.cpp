@@ -6,10 +6,10 @@
 SpamProgramm::SpamProgramm(Socket& socket)
     : mSocket(socket)
 {
-    Console::GetInstance().Print("SpamProgramm");
+    //Console::GetInstance().Print("SpamProgramm");
 
     //mRecvBuffer.reserve(1024);
-    mSendBuffer.reserve(1024*1024);
+    //mSendBuffer.reserve(1024*1024);
 
     ProcessManager::GetInstance().Register(this);
 
@@ -20,7 +20,7 @@ SpamProgramm::~SpamProgramm()
 {
     ProcessManager::GetInstance().Unregister(this);
 
-    Console::GetInstance().Print("~SpamProgramm");
+    //Console::GetInstance().Print("~SpamProgramm");
 }
 
 void SpamProgramm::DoRecv()
@@ -52,7 +52,7 @@ void SpamProgramm::Run()
     if (false == mSendBuffer.empty())
         return;
 
-    char buf[10500];
+    char buf[1024];
     for (auto i = 0; i != sizeof(buf); ++i)
     {
         buf[i] = 'a' + rand() % ('a' - 'z');

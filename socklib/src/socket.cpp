@@ -19,14 +19,14 @@ Socket::Socket()
     : mSystemSocket(new SystemSocket)
 {
     mSystemSocket->Create();
-    ConnectionManager::GetInstance().Register(*this);
+    ConnectionManager::GetInstance().Register(*this, ConnectionManager::GetTID());
 }
 
 Socket::Socket(uintptr_t s)
     : mSystemSocket(new SystemSocket)
 {
     mSystemSocket->fd = s;
-    ConnectionManager::GetInstance().Register(*this);
+    ConnectionManager::GetInstance().Register(*this, ConnectionManager::GetTID());
 }
 
 Socket::~Socket()
@@ -34,9 +34,9 @@ Socket::~Socket()
     const auto refCount = mSystemSocket.use_count();
     if (refCount <= 2) // one for this and one for ConnectionManager;
     {
-        ConnectionManager::GetInstance().Unregister(*this);
+        ConnectionManager::GetInstance().Unregister(*this, ConnectionManager::GetTID());
     }
-}
+ }
 
 void Socket::AsyncRead()
 {
@@ -101,6 +101,7 @@ void Socket::Shutdown()
 
 void Socket::Close()
 {
+    ConnectionManager::GetInstance().Unregister(*this, ConnectionManager::GetTID());
     mSystemSocket->Close();
 }
 

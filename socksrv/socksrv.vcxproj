@@ -162,7 +162,6 @@
     <ClCompile Include="src\console.cpp" />
     <ClCompile Include="src\echoprogramm.cpp" />
     <ClCompile Include="src\instancemanager.cpp" />
-    <ClCompile Include="src\lockobject.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\processmanager.cpp" />
     <ClCompile Include="src\spamprogramm.cpp" />
@@ -172,7 +171,6 @@
     <ClInclude Include="include\console.h" />
     <ClInclude Include="include\echoprogramm.h" />
     <ClInclude Include="include\instancemanager.h" />
-    <ClInclude Include="include\lockobject.h" />
     <ClInclude Include="include\processmanager.h" />
     <ClInclude Include="include\spamprogramm.h" />
   </ItemGroup>

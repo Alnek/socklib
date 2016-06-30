@@ -3,6 +3,8 @@
 
 #include "socketcallback.h"
 
+#include "windows.h"
+
 class AcceptProgramm : public SocketCallback
 {
 public:
@@ -13,8 +15,15 @@ public:
     AcceptProgramm(Socket& socket);
     virtual ~AcceptProgramm();
 
+    void Run();
+    void Stop();
 private:
+    static DWORD WINAPI run(LPVOID ptr);
+
     Socket mSocket;
+
+    DWORD mThreadId;
+    HANDLE mThread;
 };
 
 #endif

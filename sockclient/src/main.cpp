@@ -1,38 +1,46 @@
 #include "connectionmanager.h"
+#include "simpleprogramm.h"
 #include "socket.h"
 
 #include <iostream>
 #include <windows.h>
 
+const int n = 10000;
+int succes = 0;
+
+void create_connection()
+{
+    Socket client;
+    if (true == client.Connect("127.0.0.1", 7788))
+    {
+        client.SetCallback(new SimpleProgramm(client));
+        succes++;
+        //std::cout << "success = " << succes << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed" << std::endl;
+    }
+}
+
 int main()
 {
     ConnectionManager& cm = ConnectionManager::GetInstance();
 
-    Socket client;
-
-    std::string buffer;
-    buffer.reserve(100*1024);
-    uint64_t counter = 0;
-
-    client.Connect("127.0.0.1", 7788);
-    DWORD prev = GetTickCount();
-    while(true)
+    while (0 == succes)
     {
-        if (!client.Recv(buffer)) break;
-
-        counter += buffer.size();
-        buffer.clear();
-
-        DWORD delta = GetTickCount() - prev;
-        if (delta > 333)
-        {
-            std::cout << "BPS: " << (1000 * counter)/(delta * 1024) << " KB/sec" << std::endl;
-            counter = 0;
-            prev += delta;
-        }
+        create_connection();
     }
-    
-    client.Close();
+    std::cout << "success = " << succes << std::endl;
+
+    while(true == cm.Select(0))
+    {
+        if (succes < n)
+            create_connection();
+        Sleep(0);
+        SimpleProgramm::Report();
+    }
+
     cm.Shutdown();
     return 0;
 }

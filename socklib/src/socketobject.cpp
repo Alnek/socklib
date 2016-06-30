@@ -1,7 +1,7 @@
 #include "socketobject.h"
 
 #define SOCKLIB_IPV6 0
-#define FD_SETSIZE  10240
+#define FD_SETSIZE  10050
 
 #include <algorithm>
 #include <assert.h>
@@ -11,6 +11,11 @@
 
 const uint32_t SystemSocket::MAX = FD_SETSIZE;
 const uintptr_t SystemSocket::INVALID = INVALID_SOCKET;
+
+uint64_t SystemSocket::GetThreadId()
+{
+    return ::GetCurrentThreadId();
+}
 
 void SystemSocket::Init()
 {
@@ -92,13 +97,15 @@ bool SystemSocket::Select(uint64_t* nanoSec, std::vector<uintptr_t>& rSet, std::
 
 SystemSocket::SystemSocket()
     : fd(0)
+    , released(false)
     , callback(nullptr)
     , state(0)
 {}
 
 SystemSocket::~SystemSocket()
 {
-    if (0 != fd && INVALID_SOCKET != fd) closesocket(fd);
+    if (false == released && 0 != fd && INVALID_SOCKET != fd) closesocket(fd);
+    released = true;
 }
 
 void SystemSocket::Create()
@@ -131,7 +138,7 @@ bool SystemSocket::Connect(const char* addr, uint16_t port)
     inet_pton(AF_INET, addr, &(sockAddr.sin_addr));
 #endif
     int r = connect(fd, (LPSOCKADDR)&sockAddr, sizeof(sockAddr));
-    assert(0 == r && "failed to connect");
+    //assert(0 == r && "failed to connect");
     return 0 == r;
 }
 
@@ -226,5 +233,6 @@ void SystemSocket::Shutdown()
 void SystemSocket::Close()
 {
     closesocket(fd);
-    fd = 0;
+    released = true;
+    //fd = 0; do not reset, it is needed for ConnectionManager
 }
