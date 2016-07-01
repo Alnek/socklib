@@ -36,6 +36,7 @@ public:
 
     void InstallStrategy(ConnectionManagerStrategy* strategy);
     size_t Join();
+    void UpdateJoinTID();
 
     static uint64_t GetTID();
 private:
@@ -61,6 +62,7 @@ private:
     LockObject mLock;
     std::vector<Socket> mRegisterBuffer;
     std::vector<Socket> mUnregisterBuffer;
+    uint64_t mJoinTID;
 };
 
 #endif

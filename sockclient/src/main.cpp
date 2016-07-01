@@ -23,9 +23,19 @@ void create_connection()
     }
 }
 
+DWORD WINAPI run(LPVOID ptr)
+{
+    while (succes <= n)
+    {
+        create_connection();
+    }
+    return 0;
+}
+
 int main()
 {
     ConnectionManager& cm = ConnectionManager::GetInstance();
+    cm.UpdateJoinTID();
 
     while (0 == succes)
     {
@@ -33,11 +43,13 @@ int main()
     }
     std::cout << "success = " << succes << std::endl;
 
+    DWORD threadId;
+    HANDLE thread = CreateThread(nullptr, 0, run, nullptr, 0, &threadId);
+
     while(true == cm.Select(0))
     {
-        if (succes < n)
-            create_connection();
-        Sleep(0);
+        cm.Join();
+        Sleep(1);
         SimpleProgramm::Report();
     }
 

@@ -1,7 +1,9 @@
 #include "processmanager.h"
 
+#include "connectionmanager.h"
 #include "console.h"
 
+#include <cassert>
 #include <windows.h>
 
 ProcessManager& ProcessManager::GetInstance()
@@ -16,17 +18,34 @@ ProcessManager::ProcessManager()
     mStartTick = GetTickCount64();
 
     mRunnables.reserve(1024);
+    mAddRunnables.reserve(128);
 }
 
-void ProcessManager::Register(Runnable* runnable)
+void ProcessManager::Register(Runnable* runnable, uint64_t threadId)
 {
-    mRunnables.push_back(runnable);
+    if (threadId == mJoinTID)
+    {
+        mRunnables.push_back(runnable);
+    }
+    else
+    {
+        mLock.Lock();
+        mAddRunnables.push_back(runnable);
+        mLock.Unlock();
+    }
 }
 
-void ProcessManager::Unregister(Runnable* runnable)
+void ProcessManager::Unregister(Runnable* runnable, uint64_t threadId)
 {
-    auto it = std::find(mRunnables.begin(), mRunnables.end(), runnable);
-    if (it != mRunnables.end()) mRunnables.erase(it);
+    if (threadId == mJoinTID)
+    {
+        auto it = std::find(mRunnables.begin(), mRunnables.end(), runnable);
+        if (it != mRunnables.end()) mRunnables.erase(it);
+    }
+    else
+    {
+        assert(false && "TODO: how to terminate runnable from separate thread??");
+    }
 }
 
 void ProcessManager::Run(uint32_t fps)
@@ -57,4 +76,30 @@ void ProcessManager::Run(uint32_t fps)
     {
         mFrameCounter++;
     }
+}
+
+void ProcessManager::Join()
+{
+    mLock.Lock();
+    const auto cnt = mAddRunnables.size();
+    if (0 == cnt)
+    {
+        mLock.Unlock();
+        return;
+    }
+
+    std::vector<Runnable*> addBuffer;
+    addBuffer.swap(mAddRunnables);
+    mLock.Unlock();
+
+    for (auto it = addBuffer.begin(); it != addBuffer.end(); ++it)
+    {
+        Register(*it, mJoinTID);
+    }
+    return;
+}
+
+void ProcessManager::UpdateJoinTID()
+{
+    mJoinTID = ConnectionManager::GetTID();
 }

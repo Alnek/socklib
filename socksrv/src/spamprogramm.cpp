@@ -1,6 +1,7 @@
 #include "spamprogramm.h"
 
 #include "instancemanager.h"
+#include "connectionmanager.h"
 #include "console.h"
 
 SpamProgramm::SpamProgramm(Socket& socket)
@@ -11,14 +12,14 @@ SpamProgramm::SpamProgramm(Socket& socket)
     //mRecvBuffer.reserve(1024);
     //mSendBuffer.reserve(1024*1024);
 
-    ProcessManager::GetInstance().Register(this);
+    ProcessManager::GetInstance().Register(this, ConnectionManager::GetTID());
 
     mSocket.CancelAsync();
 }
 
 SpamProgramm::~SpamProgramm()
 {
-    ProcessManager::GetInstance().Unregister(this);
+    ProcessManager::GetInstance().Unregister(this, ConnectionManager::GetTID());
 
     //Console::GetInstance().Print("~SpamProgramm");
 }
@@ -55,7 +56,7 @@ void SpamProgramm::Run()
     char buf[1024];
     for (auto i = 0; i != sizeof(buf); ++i)
     {
-        buf[i] = 'a' + rand() % ('a' - 'z');
+        //buf[i] = 'a' + rand() % ('a' - 'z');
     }
     mSendBuffer.insert(mSendBuffer.end(), &buf[0], &buf[sizeof(buf)]);
 

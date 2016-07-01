@@ -56,7 +56,7 @@ ConnectionManager::~ConnectionManager()
 
 void ConnectionManager::Register(Socket socket, uint64_t threadId)
 {
-    if (threadId == GetTID())
+    if (threadId == mJoinTID)
     {
         mSockets[socket.GetFD()].reset(new Socket(socket));
         if (nullptr != mStrategy) mStrategy->onClientConnected(static_cast<int>(mSockets.size()));
@@ -71,7 +71,7 @@ void ConnectionManager::Register(Socket socket, uint64_t threadId)
 
 void ConnectionManager::Unregister(Socket socket, uint64_t threadId)
 {
-    if (threadId == GetTID())
+    if (threadId == mJoinTID)
     {
         auto it = mSockets.find(socket.GetFD());
         if (it != mSockets.end())
@@ -91,20 +91,33 @@ void ConnectionManager::Unregister(Socket socket, uint64_t threadId)
 size_t ConnectionManager::Join()
 {
     mLock.Lock();
-    const auto tid = GetTID();
-    for (auto it = mRegisterBuffer.begin(); it != mRegisterBuffer.end(); ++it)
-    {
-        Register(*it, tid);
-    }
-    for (auto it = mUnregisterBuffer.begin(); it != mUnregisterBuffer.end(); ++it)
-    {
-        Unregister(*it, tid);
-    }
     const auto cnt = mRegisterBuffer.size() + mUnregisterBuffer.size();
-    mRegisterBuffer.clear();
-    mUnregisterBuffer.clear();
+    if (0 == cnt)
+    {
+        mLock.Unlock();
+        return cnt;
+    }
+
+    std::vector<Socket> registerBuffer;
+    std::vector<Socket> unregisterBuffer;
+    registerBuffer.swap(mRegisterBuffer);
+    unregisterBuffer.swap(mUnregisterBuffer);
     mLock.Unlock();
+
+    for (auto it = registerBuffer.begin(); it != registerBuffer.end(); ++it)
+    {
+        Register(*it, mJoinTID);
+    }
+    for (auto it = unregisterBuffer.begin(); it != unregisterBuffer.end(); ++it)
+    {
+        Unregister(*it, mJoinTID);
+    }
     return cnt;
+}
+
+void ConnectionManager::UpdateJoinTID()
+{
+    mJoinTID = GetTID();
 }
 
 bool ConnectionManager::Select(uint64_t nanoSec)

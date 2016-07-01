@@ -118,20 +118,25 @@ int main()
 
     //AcceptStrategy as;
     ConnectionManager& cm = ConnectionManager::GetInstance();
+    cm.UpdateJoinTID();
+    ProcessManager& pm = ProcessManager::GetInstance();
+    pm.UpdateJoinTID();
     //cm.InstallStrategy(&as);
     Socket s;
     AcceptProgramm ap(s);
 
     while (runFlag)
     {
-        Console::GetInstance().ProcessQueue();
-        ProcessManager::GetInstance().Run(100);
-        auto cnt = cm.Join();
-        if (cnt) LOG("Join = " << cnt);
-        if (false == cm.Select(1000))
-            Sleep(10);
-    }
+        pm.Join();
+        pm.Run(100);
 
+        cm.Join();
+        if (false == cm.Select(1000))
+            Sleep(1);
+
+        Console::GetInstance().ProcessQueue();
+    }
+    ap.Stop();
     cm.Shutdown();
 
     WaitForSingleObject(thread, INFINITE);

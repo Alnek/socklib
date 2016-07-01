@@ -19,7 +19,7 @@ SimpleProgramm::SimpleProgramm(Socket& socket)
 
 SimpleProgramm::~SimpleProgramm()
 {
-    std::cout << "~SimpleProgramm" << std::endl;
+    //std::cout << "~SimpleProgramm" << std::endl;
     //Console::GetInstance().Print("~SimpleProgramm");
 }
 
